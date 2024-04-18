@@ -13,28 +13,33 @@ public class BookService {
     }
 
     public Book viewBookDetail(String isbn){
-        return bookRepository.findBookByIsbn(isbn)
+        return bookRepository.findByIsbn(isbn)
                 .orElseThrow(() -> new BookNotFoundException(isbn));
     }
     public Book addBookToCatalog(Book book){
-        if (bookRepository.findBookByIsbn(book.isbn()).isPresent()){
+        if (bookRepository.findByIsbn(book.isbn()).isPresent()){
             throw new BookAlreadyExistException(book.isbn());
         }
         return bookRepository.save(book);
     }
 
     public void removeBookFromCatalog(String isbn){
-        bookRepository.deleteBookByIsbn(isbn);
+        bookRepository.deleteByIsbn(isbn);
     }
 
     public Book editeBookDetails(String isbn, Book book){
-        return bookRepository.findBookByIsbn(isbn)
+        return bookRepository.findByIsbn(isbn)
                 .map(existingBook -> {
-                    var bookToUpdate = Book.of(
+                    var bookToUpdate = new Book(
+                            existingBook.id(),
                             isbn,
                             book.title(),
                             book.author(),
-                            book.price()
+                            book.price(),
+                            existingBook.createdDate(),
+                            existingBook.lastModifiedDate(),
+                            existingBook.version()
+
                     );
                     return bookRepository.save(bookToUpdate);
                 }).orElseGet(() -> addBookToCatalog(book));
